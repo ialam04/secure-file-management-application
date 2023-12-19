@@ -1,0 +1,70 @@
+@page "/uploadfile"
+@inject AuditService AuditService
+@inject FileService FileService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@attribute [Authorize(Roles = "Administrator,User1")]
+
+<h3>Upload File</h3>
+
+<InputFile OnChange="HandleFileUpload" />
+
+
+@if(uploadResult != null)
+{
+    <p>@uploadResult</p>
+}
+
+@if (files != null && files.Count > 0)
+{
+    <h3>Files</h3>
+    <ul>
+        @foreach (var file in files)
+        {
+            <li>@file</li>  // Add actions like download or delete if needed
+        }
+    </ul>
+}
+else
+{
+    <p>No files available.</p>
+}
+
+
+@code {
+    private List<string> files;
+
+    protected override async Task OnInitializedAsync()
+    {
+        files = await FileService.GetFilesAsync();
+    }
+
+    private string uploadResult;
+    private string message; 
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            try
+            {
+            var user = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User;
+            var username = user.Identity.Name;
+
+            if (string.IsNullOrEmpty(username))
+            {
+                message = "Error: User is not authenticated.";
+                return;
+            }
+                await FileService.UploadFileAsync(username, file);
+                uploadResult = "File uploaded successfully.";
+                files = await FileService.GetFilesAsync(); 
+            }
+            catch (Exception ex)
+            {
+                uploadResult = $"Error: {ex.Message}";
+            }
+        }
+    }
+}

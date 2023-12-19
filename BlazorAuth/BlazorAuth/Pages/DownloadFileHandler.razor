@@ -1,0 +1,67 @@
+@page "/downloadfilehandler"
+@inject FileService FileService
+@inject AuditService AuditService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using Microsoft.AspNetCore.Authorization
+@inject IJSRuntime JsRuntime
+@attribute [Authorize(Roles = "Administrator,User1,User2")]
+
+<h3>Download File Handler</h3>
+
+<input type="text" @bind="filePath" />
+<button @onclick="() => HandleDownloadFile(filePath)">Download File</button>
+
+@if (files != null && files.Count > 0)
+{
+    <ul>
+        @foreach (var file in files)
+        {
+            <li>@file
+                <button @onclick="() => HandleDownloadFile(file)">Download</button>
+            </li>  
+        }
+    </ul>
+}
+else
+{
+    <p>No files available to download.</p>
+}
+
+@code {
+    private List<string> files = new List<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        files = await FileService.GetFilesAsync();
+    }
+
+    private string filePath;
+    private string message;
+
+    private async Task HandleDownloadFile(string fileName)
+    {
+        try
+        {
+            var user = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User;
+            var username = user.Identity.Name;
+
+            if (string.IsNullOrEmpty(username))
+            {
+                message = "Error: User is not authenticated.";
+                return;
+            }
+
+            var fileData = await FileService.DownloadFileAsync(username, fileName);
+            if (fileData != null)
+            {
+                var data = Convert.ToBase64String(fileData);
+                var mimeType = "application/octet-stream"; 
+                await JsRuntime.InvokeVoidAsync("downloadFileFromBase64", fileName, data, mimeType);
+            }
+        }
+        catch (FileNotFoundException ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+    }
+}

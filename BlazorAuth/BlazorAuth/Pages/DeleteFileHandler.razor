@@ -1,0 +1,72 @@
+@page "/deletefilehandler"
+@inject FileService FileService
+@inject AuditService AuditService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using Microsoft.AspNetCore.Authorization
+@inject IJSRuntime JsRuntime
+
+@attribute [Authorize(Roles = "Administrator")]
+
+<h3>Delete File Handler</h3>
+
+<input type="text" @bind="fileName" />
+<button @onclick="() => HandleDeleteFile(fileName)">Delete File</button>
+
+@if (message != null)
+{
+    <p>@message</p>
+}
+
+@if (files != null && files.Count > 0)
+{
+    <ul>
+        @foreach (var file in files)
+        {
+            <li>@file 
+                <button @onclick="() => HandleDeleteFile(file)">Delete</button>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>No files available to delete.</p>
+}
+
+@code {
+    private List<string> files = new List<string>();
+    protected override async Task OnInitializedAsync()
+    {
+        files = await FileService.GetFilesAsync();
+    }
+
+    private string fileName;
+    private string message;
+
+    private async Task HandleDeleteFile(string fileName)
+    {
+        try
+        {
+            var user = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User;
+            var username = user.Identity.Name;
+
+            if (string.IsNullOrEmpty(username))
+            {
+                message = "Error: User is not authenticated.";
+                return;
+            }
+
+            await FileService.DeleteFileAsync(username, fileName);
+            message = "File deleted successfully.";
+        }
+        catch (FileNotFoundException ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            message = $"An error occurred: {ex.Message}";
+        }
+    }
+}
+

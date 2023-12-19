@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "X/LT5zldqxTNsnkPSf5AdGfPLNDqViyq9vgw+80PFEah5I60+Z6WvX6GRxRiSFAuIjYkY3lBtbMagQ/SKhTFsA==",
+  "success": true,
+  "projectFilePath": "/home/ialam04/Downloads/BlazorAuth/BlazorAuth/BlazorAuth/BlazorAuth.csproj",
+  "expectedPackageFiles": [
+    "/home/ialam04/.nuget/packages/microsoft.extensions.logging.abstractions/5.0.0/microsoft.extensions.logging.abstractions.5.0.0.nupkg.sha512",
+    "/home/ialam04/.nuget/packages/novell.directory.ldap.netstandard/3.6.0/novell.directory.ldap.netstandard.3.6.0.nupkg.sha512"
+  ],
+  "logs": []
+}
